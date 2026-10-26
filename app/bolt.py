@@ -515,16 +515,17 @@ class Cuda(Engine):
     """TensorFold 1.1.5's native engine with Mia's Bolt lane backend on a DGX Spark (``tensorfold-native serve``, Zig +
     CUDA, libbolt.so, NVIDIA's LiLiCorr drafter; no Python, no Docker at run time), from ``$PREFIX/bolt``
     (spark/build-bolt.sh, branch bolt-lilicorr-115). The Studio's settings, trimmed from Mia's defaults to sit beside renders: 4 streams, a
-    65,536-token window each, 2 GiB of prompt cache, pictures and video on, thinking off. Measured on .4 (GB10) with
-    those settings in Mia's image: 28 GB resident, about 40 s to answer with the files in the page cache, 57 to 60
-    tokens a second for one stream."""
+    65,536-token window each, 2 GiB of prompt cache, pictures and video on, thinking off. Measured on a GB10 with
+    those settings (3.3.3): 30.7 GB held, 32 to 74 s to answer (files in the page cache or not), 66 tokens a second
+    for one stream in chat, 76 on a 600-token plan, 138 on an edit, 204 for four plans at once (the 1.0.12 engine
+    before it: 28 GB, 57, 68, 118 and 140)."""
 
     name, label = "cuda", "TensorFold 1.1.5 CUDA · DGX Spark (Mia's Bolt recipe)"
     load_s = 40.0
     # free memory wanted before it loads: Mia's start check for these settings (weights 23, vision 3, recurrent state
     # 2, attention 1, TensorFold's reserve 10, 2, prompt cache 2 GiB)
     NEED_GB = 43.0
-    RESIDENT_GB = 28.0
+    RESIDENT_GB = 31.0  # 30.7 GB held, measured on a GB10 with the settings below (3.3.3; 28 with the 1.0.12 engine)
     folder_name = "bolt"
 
     def __init__(self) -> None:

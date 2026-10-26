@@ -183,7 +183,20 @@ pictures and video (`libtfvideo`) are in the build. Two changes over the recipe,
 first token goes out before the drafter's first proposal, and a chat turn's last prompt-cache mark is kept at the
 prompt's end, so a turn's new rows run in one pass instead of two.
 
-@AB_TABLE@
+Measured on a DGX Spark (GB10) with the Studio's own settings (4 streams, 65,536 tokens, 2 GiB of prompt cache,
+pictures on), the same weights, one engine at a time, through a throwaway Studio (`/api/bolt/load`), greedy:
+
+| | 3.3.2 engine (1.0.12) | 3.3.3 engine (1.1.5) |
+|---|---|---|
+| chat, 120 tokens | 57.0 tok/s, first token 128 ms | **65.8 tok/s**, 77 ms |
+| 600-token plan | 67.6 tok/s, 156 ms | **76.1 tok/s**, 106 ms |
+| edit (rewrite a paragraph) | 117.6 tok/s, 209 ms | **137.5 tok/s**, 143 ms |
+| four plans at once | 140 tok/s | **204 tok/s** |
+| held while loaded | 28.1 GB | 30.7 GB |
+
+Both pass the same checks: a Slate plan through `/api/slate/brain` (JSON, four shots), tool calls (offered, forced and
+named), `response_format` json_object and json_schema (the grammar holds; greedy, Bolt can run a schema's integer to
+the token limit on both engines), a picture and a short video, an edit.
 
 `spark/build-bolt.sh` now takes the engine from this release's archive (`bolt-cuda-ecdc7892-linux-aarch64.tar.gz`, sha256
 pinned), then the carrier, then a build from source (nvcc, Zig 0.17.0, FFmpeg, libjpeg-turbo, xgrammar; about 15

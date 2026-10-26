@@ -166,13 +166,29 @@ Full recipes, every option and the measured memory of each job: [Install, and th
 design and build the studio in collaboration with Keys, made Wasserman's Filmmaker Suite, and shaped the production side (Slate, the Sharp Spec, Motion Previs). See
 [Big credit: Sam Wasserman and Wasserman Productions](#big-credit-sam-wasserman-and-wasserman-productions-wassermanproductionscom), below the release notes, and [CREDITS.md](CREDITS.md).*
 
-**3.3.2** · Apple-silicon Macs (measured on a Mac Studio M5 Ultra 256 GB), the NVIDIA DGX Spark, and the NVIDIA RTX Pro
+**3.3.3** · Apple-silicon Macs (measured on a Mac Studio M5 Ultra 256 GB), the NVIDIA DGX Spark, and the NVIDIA RTX Pro
 6000 (96 GB) ·
 [TensorFold](https://github.com/ashhart/TensorFold) **0.6.5** + two families, and TensorFold **1.0**'s native Zig
-runtime for FastH3 on Metal and on CUDA, TensorFold **1.1.5** for the music engines and the Mac's Bolt engine:
+runtime for FastH3 on Metal and on CUDA, TensorFold **1.1.5** for the music engines and both Bolt engines:
 **Qwen 2.1 Turbo**, **Qwen 2.1 Full**, **FLUX3-K Fast** and **FLUX3-K Full** (text to image, and Edit a picture) · **MOSS-Image** (text to image, DGX Spark) · **MiniMax H3**
 (video with sound) · **Fish Audio Drama 3** (Voice) · **MiniMax-Music3** (Music: songs with sung vocals) · int8 kernels on the M5 tensor units and on the GB10's tensor
 cores · a 2x video decoder for 2K finals on the Mac
+
+## New in 3.3.3 (2026-10-26)
+
+The DGX Spark's brain engine, **NVIDIA Nemotron 3.5 Bolt**, moves from Mia's 1.0.12 recipe (6f61d772 on TensorFold
+46a08c18) to the same recipe at 89e1c8a (with ChriZzn's speed work) rebased onto **TensorFold 1.1.5**, drowzeys/TensorFold
+branch `bolt-lilicorr-115`. NVIDIA's LiLiCorr drafter still runs inside it, and structured output (`libtfgrammar`),
+pictures and video (`libtfvideo`) are in the build. Two changes over the recipe, neither touching the arithmetic: the
+first token goes out before the drafter's first proposal, and a chat turn's last prompt-cache mark is kept at the
+prompt's end, so a turn's new rows run in one pass instead of two.
+
+@AB_TABLE@
+
+`spark/build-bolt.sh` now takes the engine from this release's archive (`bolt-cuda-ecdc7892-linux-aarch64.tar.gz`, sha256
+pinned), then the carrier, then a build from source (nvcc, Zig 0.17.0, FFmpeg, libjpeg-turbo, xgrammar; about 15
+minutes), and keeps the engine it replaces in `$PREFIX/bolt.previous` (move it back to `bolt` to roll back). Update a
+Spark with `git pull && bash oneshot-setup.sh --upgrade`, then restart the app. The Mac keeps its Metal Bolt engine.
 
 ## New in 3.3.2 (2026-10-25)
 
@@ -2913,9 +2929,10 @@ bash oneshot-setup.sh --bolt         # Mac: the same weights; the engine is Tens
 ```
 
 The weights are NVIDIA's (OpenMDW License Agreement 1.1: commercial use allowed; a copy passed on keeps the licence and
-NVIDIA's notices). On a DGX Spark the engine is TensorFold's native server with **Mia's Bolt backend**
-(MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark, MIT): `spark/build-bolt.sh` copies the build out of the carrier or
-Mia's image into `$PREFIX/bolt` (Docker only copies files; nothing runs in a container).
+NVIDIA's notices). On a DGX Spark the engine is TensorFold 1.1.5's native server with **Mia's Bolt backend**
+(MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark, MIT, with ChriZzn's speed work; drowzeys/TensorFold branch
+`bolt-lilicorr-115`): `spark/build-bolt.sh` installs the release archive (pinned by sha256), else the carrier's copy,
+else builds it from source, into `$PREFIX/bolt`, and keeps the engine it replaces in `$PREFIX/bolt.previous`.
 
 - **Which engine** (`BOLT_BACKEND`): `cuda` on a DGX Spark where it is built; `metal` on a Mac once TensorFold's Metal
   Bolt engine is built into `$PREFIX/bolt-metal`; `llamacpp` on a Mac only when set (llama.cpp's `llama-server` with

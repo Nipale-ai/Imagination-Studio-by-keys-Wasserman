@@ -329,8 +329,12 @@ notices). No weights are in this pack.
 
 **Mia (MiaAI-Lab)** made **Nemotron-3.5-Bolt-TensorFold-DGX-Spark** (MIT), the recipe that serves Bolt on one DGX Spark
 with TensorFold's native engine: the Bolt lane backend (`libbolt.so`, the packed-weight kernels, the LiLiCorr drafter
-run inside it) and the patches to TensorFold 46a08c18. The studio's CUDA engine is that build, copied out of Mia's
-image or the carrier by `spark/build-bolt.sh`; the trimmed settings it runs with (4 streams, 65,536 tokens, 2 GiB of
+run inside it) and the patches that register it in TensorFold. **ChriZzn** contributed the recipe's speed work (the
+TensorFold 1.1.0 rebase, the routed-expert ring, programmatic dependent launch, one Mamba state copy, the fp4 prompt
+projections). Since 3.3.3 the studio's CUDA engine is that recipe at 89e1c8a rebased onto TensorFold 1.1.5 (drowzeys/TensorFold
+branch `bolt-lilicorr-115`, with its first token sent before the drafter's first proposal and a turn's last cache mark
+kept at the prompt's end), installed by `spark/build-bolt.sh` from the release archive, the carrier or a source build
+with FFmpeg, libjpeg-turbo and **xgrammar**; the trimmed settings it runs with (4 streams, 65,536 tokens, 2 GiB of
 prompt cache) are the studio's. TensorFold is Ash Hart's and the contributors'; **llama.cpp** (Georgi Gerganov and the
 ggml contributors) runs Bolt on a Mac until TensorFold's Metal port of the engine lands.
 
